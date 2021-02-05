@@ -1,43 +1,45 @@
 import math
 
-lines = open("input.txt").readlines()
+f = open("input.txt")
+lines = [x.strip() for x in f.readlines()]
+f.close()
 
 wires = [x.split(",") for x in lines]
 
-wire_paths = []
+directions = {
+    'L': [-1, 0],
+    'R': [1, 0],
+    'U': [0, 1],
+    'D': [0, -1]
+}
 
-for wire in wires:
+visited = dict()
+
+def append(visited, pos, value, steps):
+    if visited.get(tuple(pos)) == None:
+        visited[tuple(pos)] = [(value, steps)]
+    else:
+        if value in [x[0] for x in visited[tuple(pos)]]:
+            return
+        visited[tuple(pos)].append((value, steps))
+
+for x in range(len(wires)):
     position = [0, 0]
-    visited = []
-    mags = [int(x[1:]) for x in wire]
-    print("Sum:", sum(mags))
-
-    for instruction in wire:
-        instruction = instruction.strip("\n")
+    steps = 0
+    append(visited, position, x, steps)
+    for instruction in wires[x]:
+        direction = directions[instruction[0]]
         magnitude = int(instruction[1:])
-        increment = []
-        if instruction[0] == 'R':
-            increment = [1, 0]
-        if instruction[0] == 'L':
-            increment = [-1, 0]
-        if instruction[0] == 'U':
-            increment = [0, 1]
-        if instruction[0] == 'D':
-            increment = [0, -1]
+        for y in range(magnitude):
+            position = [position[0] + direction[0], position[1] + direction[1]]
+            steps += 1
+            append(visited, position, x, steps)
 
-        for x in range(magnitude):
-            x, y = position
-            x += increment[0]
-            y += increment[1]
-            position = [x, y]
-            visited.append(position)
+intersections = [abs(x[0]) + abs(x[1]) for x in visited if len(visited[x]) > 1 and x != (0, 0)]
 
-        #print("Instruction", instruction, "Complete!")
+print("Part 1:", min(intersections))
 
-    wire_paths.append(visited)
+distances = [visited[x][0][1] + visited[x][1][1] for x in visited if len(visited[x]) > 1 and x != (0, 0)]
+min_distance = min(distances)
 
-#print(len([(x[0] + x[1]) for x in wire_paths[0] if x in wire_paths[1]]))
-
-# intersections = len([(x[0] + x[1]) for x in wire_paths[0] if x in wire_paths[1]])
-# print(intersections)
-# print("Part 1:", min(intersections))
+print("Part 2:", min_distance)
